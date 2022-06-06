@@ -1,7 +1,7 @@
 pub type Position = (usize, usize);
 
 use crate::snake::Snake;
-
+use rand::random;
 pub enum Direction {
     Left,
     Right,
@@ -51,14 +51,15 @@ impl SnakeGame {
     fn finish_game(&mut self) {
         self.speed = 0.0;
     }
+
     pub fn tick(&mut self) {
         let result = self.predict_snake_move_result();
         match result {
             SnakeMoveResult::Done => self.snake.do_move(),
             SnakeMoveResult::Grow(new_position) => {
-                self.apple = None;
-                self.snake.grow(new_position)
-            },
+                self.apple = Some(self.get_new_apple_position());
+                self.snake.grow(new_position);
+            }
             SnakeMoveResult::Dead => self.finish_game(),
         }
     }
@@ -85,8 +86,25 @@ impl SnakeGame {
         }
     }
 
-    pub fn set_apple_position(&mut self, position: Position) {
-        self.apple = Some(position);
+    fn get_new_apple_position(&self) -> Position {
+        loop {
+            let new_position = (
+                random::<usize>() % self.width,
+                random::<usize>() % self.height,
+            );
+            match self.apple {
+                None => {
+                    return new_position;
+                }
+                Some(old_position) => {
+                    if old_position.eq(&new_position) || self.snake.has_body_in(new_position){
+                        continue;
+                    }
+                    return new_position;
+                }
+            }
+
+        }
     }
 
     pub fn print(&self) {
@@ -123,12 +141,14 @@ impl SnakeGame {
         println!()
     }
     pub fn start_game(size: usize) -> SnakeGame {
-        SnakeGame {
+        let mut game = SnakeGame {
             width: (size),
             height: (size),
-            snake: crate::snake::Snake::make_snake((size/2, size/2), Direction::Up),
+            snake: crate::snake::Snake::make_snake((size / 2, size / 2), Direction::Up),
             apple: (None),
             speed: (1.0),
-        }
+        };
+        game.apple = Some(game.get_new_apple_position());
+        game
     }
 }
