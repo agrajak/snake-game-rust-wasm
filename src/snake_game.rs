@@ -1,5 +1,7 @@
 pub type Position = (usize, usize);
 
+use crate::snake::Snake;
+
 pub enum Direction {
     Left,
     Right,
@@ -7,10 +9,8 @@ pub enum Direction {
     Down,
 }
 
-use crate::snake::Snake;
-
 impl Direction {
-    pub fn getTuple(&self) -> (i8, i8) {
+    pub fn get_tuple(&self) -> (i8, i8) {
         match *self {
             Direction::Left => (0, -1),
             Direction::Right => (0, 1),
@@ -19,8 +19,8 @@ impl Direction {
         }
     }
     pub fn add_position(&self, (x, y): Position) -> Position {
-        let (dx, dy) = self.getTuple();
-        ((dx + x as i8) as usize, (dy + x as i8) as usize)
+        let (dx, dy) = self.get_tuple();
+        ((dx + x as i8) as usize, (dy + y as i8) as usize)
     }
 }
 
@@ -42,7 +42,7 @@ enum GridInfo {
 pub struct SnakeGame {
     width: usize,
     height: usize,
-    snake: Snake,
+    pub snake: Snake,
     apple: Option<Position>,
     speed: f32,
 }
@@ -52,14 +52,17 @@ impl SnakeGame {
         self.speed = 0.0;
     }
     pub fn tick(&mut self) {
-        let result = self.move_snake();
+        let result = self.predict_snake_move_result();
         match result {
             SnakeMoveResult::Done => self.snake.do_move(),
-            SnakeMoveResult::Grow(new_position) => self.snake.grow(new_position),
+            SnakeMoveResult::Grow(new_position) => {
+                self.apple = None;
+                self.snake.grow(new_position)
+            },
             SnakeMoveResult::Dead => self.finish_game(),
         }
     }
-    fn move_snake(&self) -> SnakeMoveResult {
+    fn predict_snake_move_result(&self) -> SnakeMoveResult {
         let new_position = self.snake.estimate_new_head_position();
         let (x, y) = new_position;
         if !((0..self.width).contains(&x) && (0..self.height).contains(&y)) {
@@ -80,6 +83,10 @@ impl SnakeGame {
                 SnakeMoveResult::Done
             }
         }
+    }
+
+    pub fn set_apple_position(&mut self, position: Position) {
+        self.apple = Some(position);
     }
 
     pub fn print(&self) {
