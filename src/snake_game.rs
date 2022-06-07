@@ -1,7 +1,10 @@
 pub type Position = (usize, usize);
 
+use serde::{Serialize, Deserialize};
 use crate::snake::Snake;
 use rand::random;
+
+#[derive(Serialize, Deserialize)]
 pub enum Direction {
     Left,
     Right,
@@ -39,6 +42,7 @@ enum GridInfo {
     SnakeBody,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SnakeGame {
     width: usize,
     height: usize,

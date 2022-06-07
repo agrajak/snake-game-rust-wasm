@@ -1,8 +1,9 @@
 
 use std::collections::{vec_deque::Iter, VecDeque};
-
+use serde::{Serialize, Deserialize};
 use crate::snake_game::{Position, Direction};
 
+#[derive(Serialize, Deserialize)]
 pub struct Snake {
     body: VecDeque<Position>,
     direction: Direction,
